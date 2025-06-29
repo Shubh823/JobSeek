@@ -19,9 +19,9 @@ app.use(cookieParser());
 const corsOptions = {
     origin: [
         'http://localhost:5173',
-        'https://job-seek-phi.vercel.app',
+        'https://job-seek-eight.vercel.app/',
         'https://job-seek-git-main-shubh823s-projects.vercel.app',
-        'https://job-seek-qkjqp2456-shubh823s-projects.vercel.app'
+        'https://job-seek-key5yah4v-shubh823s-projects.vercel.app'
       ],
     credentials:true
 }
