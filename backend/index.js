@@ -17,12 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 const corsOptions = {
-    origin: [
-        'http://localhost:5173',
-        'https://job-seek-eight.vercel.app/',
-        'https://job-seek-git-main-shubh823s-projects.vercel.app',
-        'https://job-seek-key5yah4v-shubh823s-projects.vercel.app'
-      ],
+    origin: 'https://jobseek-frontend-ylgv.onrender.com',
     credentials:true
 }
 

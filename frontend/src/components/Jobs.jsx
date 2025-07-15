@@ -10,12 +10,12 @@ import useGetAllJobs from '@/hooks/useGetAllJobs';
 
 const Jobs = () => {
     useGetAllJobs();
-    const { allJobs, searchedQuery } = useSelector(store => store.job);
+    const { allJobs, searchQuery } = useSelector(store => store.job);
     const [filterJobs, setFilterJobs] = useState(allJobs);
-
+    console.log(searchQuery)
     useEffect(() => {
-        if (searchedQuery) {
-            const search = searchedQuery.toLowerCase().trim();
+        if (searchQuery) {
+            const search = searchQuery.toLowerCase().trim();
             const searchWords = search.split(/\s+/).filter(Boolean);
             const filteredJobs = allJobs.filter((job) => {
                 // Gather all searchable fields as an array of strings
@@ -37,7 +37,7 @@ const Jobs = () => {
         } else {
             setFilterJobs(allJobs)
         }
-    }, [allJobs, searchedQuery]);
+    }, [allJobs, searchQuery]);
 
     return (
         <div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button } from './ui/button'
 import { Search, Sparkles } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux';
-import { setSearchedQuery } from '@/redux/jobSlice';
+import {setSearchQuery } from '@/redux/jobSlice';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -13,10 +13,10 @@ const HeroSection = () => {
     const { user } = useSelector(store => store.auth);
 
     const searchJobHandler = () => {
-        dispatch(setSearchedQuery(query));
+        dispatch(setSearchQuery(query));
         navigate("/browse");
     }
-
+    
     const goToRecommendedJobs = () => {
         navigate("/recommended");
     }

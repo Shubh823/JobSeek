@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
 import { useDispatch } from 'react-redux'
-import { setSearchedQuery } from '@/redux/jobSlice'
+import { setSearchQuery } from '@/redux/jobSlice'
 
 const filterData = [
     {
@@ -55,7 +55,7 @@ const FilterCard = () => {
             .map(([key, value]) => value);
         // Join with space for multi-criteria search
         const combinedQuery = queryParts.join(' ');
-        dispatch(setSearchedQuery(combinedQuery));
+        dispatch(setSearchQuery(combinedQuery));
     }, [selected]);
 
     return (
