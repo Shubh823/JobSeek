@@ -18,7 +18,7 @@ const Login = () => {
         password: "",
         role: "",
     });
-    const { loading,user } = useSelector(store => store.auth);
+    const { loading, user } = useSelector(store => store.auth);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -48,11 +48,11 @@ const Login = () => {
             dispatch(setLoading(false));
         }
     }
-    useEffect(()=>{
-        if(user){
+    useEffect(() => {
+        if (user) {
             navigate("/");
         }
-    },[])
+    }, [])
     return (
         <div>
             <Navbar />
@@ -110,7 +110,13 @@ const Login = () => {
                         loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4">Login</Button>
                     }
                     <span className='text-sm'>Don't have an account? <Link to="/signup" className='text-blue-600'>Signup</Link></span>
+                    <div className='mt-6 p-4 bg-gray-100 rounded-md border border-gray-300'>
+                    <h2 className='font-semibold text-md mb-2'>🎯 Test Credentials</h2>
+                    <p className='text-sm mb-1'><strong>Student:</strong> kartik@gmail.com | Password: kartik</p>
+                    <p className='text-sm'><strong>Recruiter:</strong> shub@gmail.com | Password: shubh</p>
+                </div>
                 </form>
+                
             </div>
         </div>
     )
