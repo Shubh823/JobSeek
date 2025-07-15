@@ -1,7 +1,7 @@
 # JobHunt - Job Portal Application
 
 A full-stack job portal application built with React.js, Node.js, and MongoDB. The application allows students to search for jobs, apply to positions, and get personalized job recommendations based on their skills.
-
+watch live https://jobseek-frontend-ylgv.onrender.com
 ## Features
 
 ### For Students
