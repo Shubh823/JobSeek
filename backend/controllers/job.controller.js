@@ -106,7 +106,7 @@ export const getAdminJobs = async (req, res) => {
 export const getRecommendedJobs = async (req, res) => {
     try {
         const userId = req.id;
-        
+        console.log("User ID:", userId);
         // Get user profile with skills
         const user = await User.findById(userId);
         
@@ -130,18 +130,11 @@ export const getRecommendedJobs = async (req, res) => {
             });
         }
 
-        const userSkills = user.profile.skills.map(skill => skill.toLowerCase());
-        
-        // Find jobs that match user skills
+        const skills = user.profile.skills.map(skill => skill.toLowerCase());
+
         const recommendedJobs = await Job.find({
-            $or: [
-                { title: { $regex: userSkills.join('|'), $options: "i" } },
-                { description: { $regex: userSkills.join('|'), $options: "i" } },
-                { requirements: { $in: userSkills.map(skill => new RegExp(skill, 'i')) } }
-            ]
-        }).populate({
-            path: "company"
-        }).sort({ createdAt: -1 });
+            skills: { $in: skills }
+        }).populate('company').sort({ createdAt: -1 });
 
         // If no direct matches, find jobs with similar requirements
         if (recommendedJobs.length === 0) {
@@ -218,3 +211,5 @@ export const updateJob=async(req,res)=>{
         });
     }
 }
+
+

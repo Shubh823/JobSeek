@@ -318,3 +318,4 @@ export const getSavedJobs = async (req, res) => {
         });
     }
 }
+
