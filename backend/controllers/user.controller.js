@@ -1,14 +1,14 @@
-import { User }  from "../models/user.model.js";
+import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
-import  supabase  from "../utils/supabaseClient.js";
+import supabase from "../utils/supabaseClient.js";
 
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
-         
+
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
@@ -23,10 +23,10 @@ export const register = async (req, res) => {
             });
         }
         const fileUri = getDataUri(file);
-         const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
             resource_type: "auto"
-          });
-          
+        });
+
 
         const user = await User.findOne({ email });
         if (user) {
@@ -43,8 +43,8 @@ export const register = async (req, res) => {
             phoneNumber,
             password: hashedPassword,
             role,
-            profile:{
-                profilePhoto:cloudResponse.secure_url,
+            profile: {
+                profilePhoto: cloudResponse.secure_url,
             }
         });
 
@@ -59,7 +59,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password, role } = req.body;
-        
+
         if (!email || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
@@ -101,8 +101,13 @@ export const login = async (req, res) => {
             role: user.role,
             profile: user.profile
         }
-
-        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
+        console.log(token);
+        return res.status(200).cookie("token", token, {
+            httpOnly: true, // ✅ Prevents JS access
+            secure: true,   // ✅ Needed for HTTPS (like on Render)
+            sameSite: "None", // ✅ Required for cross-site cookie (from frontend to backend)
+            maxAge: 1 * 24 * 60 * 60 * 1000
+        }).json({
             message: `Welcome back ${user.fullname}`,
             user,
             success: true
@@ -124,7 +129,7 @@ export const logout = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, bio, skills } = req.body;
-        
+
         const userId = req.id; // middleware authentication
 
         let user = await User.findById(userId);
@@ -134,20 +139,20 @@ export const updateProfile = async (req, res) => {
                 success: false
             });
         }
-        
-          
+
+
         let skillsArray;
-        if(skills){
+        if (skills) {
             skillsArray = skills.split(",");
         }
 
         // updating data
-        if(fullname) user.fullname = fullname
-        if(email) user.email = email
-        if(phoneNumber)  user.phoneNumber = phoneNumber
-        if(bio) user.profile.bio = bio
-        if(skills) user.profile.skills = skillsArray
-      
+        if (fullname) user.fullname = fullname
+        if (email) user.email = email
+        if (phoneNumber) user.phoneNumber = phoneNumber
+        if (bio) user.profile.bio = bio
+        if (skills) user.profile.skills = skillsArray
+
         // resume comes later here...
 
         const file = req.file;
@@ -161,7 +166,7 @@ export const updateProfile = async (req, res) => {
                 .storage
                 .from('resumes')
                 .upload(filePath, file.buffer, {
-                    contentType:file.mimetype
+                    contentType: file.mimetype
                 });
 
             if (error) {
@@ -193,9 +198,9 @@ export const updateProfile = async (req, res) => {
         }
 
         return res.status(200).json({
-            message:"Profile updated successfully.",
+            message: "Profile updated successfully.",
             user,
-            success:true
+            success: true
         })
     } catch (error) {
         console.log(error);
