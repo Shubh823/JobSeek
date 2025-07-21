@@ -45,7 +45,7 @@ this bullets should be in the array consist of string limit the point to maximum
         const response =  result.response;
         const outputText = response.text(); // get actual string output
         
-        
+       
         const parsedSuggestions = extractJsonArray(outputText);
         return { Tips: parsedSuggestions };
 

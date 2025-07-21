@@ -23,34 +23,17 @@ export const  getSkillsFromResume= async (text)=> {
 
         const data =  result.response.text();
         const cleaned = data.replace(/```json|```/g, "").trim();
+        let json;
         try {
-            const json = JSON.parse(cleaned);
-            
+             json = JSON.parse(cleaned);
+            console.log(json);
             return json;
         } catch (jsonErr) {
             console.error("Failed to parse JSON from Gemini response:", jsonErr);
             json={skills:[],roles:[]}
             return json;
         }
-        // console.log("Gemini API response:", JSON.stringify(data, null, 2)); // <--- Add this line
-        
-
-
-        // const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        // if (!rawText) {
-        //     console.error("No text returned from Gemini API:", data);
-        //     return { skills: [], roles: [] };
-        // }
-
-        // // Try to parse the raw text as JSON
-        // try {
-        //     const json = JSON.parse(rawText);
-        //     return json;
-        // } catch (jsonErr) {
-        //     console.error("Failed to parse JSON from Gemini response:", rawText);
-        //     return { skills: [], roles: [] };
-        // }
+         
 
     } catch (error) {
         console.error("Error calling Gemini API:", error);

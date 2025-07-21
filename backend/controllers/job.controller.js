@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import supabase from "../utils/supabaseClient.js";
 import { getSkillsFromResume } from "../utils/geminiHelper.js";
-import {smartSearch} from "../utils/geminiSmartSearch.js"
+import { smartSearch } from "../utils/geminiSmartSearch.js"
 
 import fs from 'fs';
 
@@ -92,8 +92,8 @@ export const getAdminJobs = async (req, res) => {
     try {
         const adminId = req.id;
         const jobs = await Job.find({ created_by: adminId }).populate({
-            path:'company',
-            createdAt:-1
+            path: 'company',
+            createdAt: -1
         });
         if (!jobs) {
             return res.status(404).json({
@@ -113,14 +113,16 @@ export const getAdminJobs = async (req, res) => {
 
 // Get recommended jobs based on resume using Gemini API
 export const getRecommendedJobs = async (req, res) => {
+    const userId = req.id;
     try {
-        const userId = req.id;
+        
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found", success: false });
         }
         // Check for resume URL
         const resumeUrl = user.profile?.resume;
+        
         if (!resumeUrl) {
             // Fallback: no resume, show recent jobs
             const recentJobs = await Job.find().populate("company").sort({ createdAt: -1 }).limit(10);
@@ -130,41 +132,45 @@ export const getRecommendedJobs = async (req, res) => {
                 message: "No resume found. Showing recent jobs instead."
             });
         }
-        // Extract the path from the public URL (Supabase)
-        // Example: https://.../object/public/resumes/resume-123.pdf => resumes/resume-123.pdf
+        
         const match = resumeUrl.match(/object\/public\/(.*)/);
         const resumePath = match ? match[1] : null;
         if (!resumePath) {
             return res.status(400).json({ message: "Invalid resume URL", success: false });
         }
         // Download resume from Supabase
-        const { data, error } = await supabase.storage.from('resumes').download(resumePath.replace('resumes/', ''));
-        if (error || !data) {
-            return res.status(400).json({ message: "Failed to download resume", success: false });
-        }
-        // Parse PDF text
-        const buffer = await data.arrayBuffer();
-        const pdfText = await pdfParse(Buffer.from(buffer));
-        // Get skills/roles from Gemini
-        const text = await getSkillsFromResume(pdfText.text);
-        const {skills,roles,technology} =text;
-       
+            
+            const { data, error } = await supabase.storage.from('resumes').download(resumePath.replace('resumes/', ''));
+            
+            if (error || !data) {
+                return res.status(400).json({ message: "Failed to download resume", success: false });
+            }
+            // Parse PDF text
+            const buffer = await data.arrayBuffer();
+            const pdfText = await pdfParse(Buffer.from(buffer));
+            
+            // Get skills/roles from Gemini
+          
+            const text = await getSkillsFromResume(pdfText.text);
+            const { skills, roles, technology } = text;
+        
+
 
         const combinedKeywords = [...skills, ...technology, ...roles].map(term =>
             term.toLowerCase()
-          );
+        );
         // Find jobs matching skills or roles
         const recommendedJobs = await Job.find({
             $and: [
-              {
-                $or: [
-                  { requirements: { $in: combinedKeywords } },
-                  { title: { $regex: combinedKeywords.join('|'), $options: 'i' } },
-                  { description: { $regex: combinedKeywords.join('|'), $options: 'i' } }
-                ]
-              },
+                {
+                    $or: [
+                        { requirements: { $in: combinedKeywords } },
+                        { title: { $regex: combinedKeywords.join('|'), $options: 'i' } },
+                        { description: { $regex: combinedKeywords.join('|'), $options: 'i' } }
+                    ]
+                },
             ]
-          }).populate('company').sort({ createdAt: -1 });
+        }).populate('company').sort({ createdAt: -1 });
         // Fallback: recent jobs
         if (!recommendedJobs.length) {
             const recentJobs = await Job.find().populate('company').sort({ createdAt: -1 }).limit(10);
@@ -180,15 +186,14 @@ export const getRecommendedJobs = async (req, res) => {
             message: `Recommended jobs using your resume`
         });
     } catch (error) {
-        console.log(error);
         return res.status(500).json({
-            message: "Error processing resume recommendation",
+            message: "Error processing resume recommendation.",
             success: false
         });
     }
 }
 
-export const updateJob=async(req,res)=>{
+export const updateJob = async (req, res) => {
     try {
         const {
             title,
@@ -223,9 +228,9 @@ export const updateJob=async(req,res)=>{
             })
         }
         return res.status(200).json({
-            message:"Job information updated.",
+            message: "Job information updated.",
             job,
-            success:true
+            success: true
         })
 
     } catch (error) {
@@ -237,31 +242,31 @@ export const updateJob=async(req,res)=>{
     }
 }
 
-export const searchedJobs=async (req,res)=>{
+export const searchedJobs = async (req, res) => {
     const { query } = req.body;
     console.log("Search query:", query);
-    
+
     try {
-        let queryArray=await smartSearch(query);
-        
+        let queryArray = await smartSearch(query);
+
         const searchConditions = queryArray.flatMap((keyword) => [
             { title: { $regex: keyword, $options: "i" } },
             { description: { $regex: keyword, $options: "i" } },
             { requirements: { $regex: keyword, $options: "i" } },
             { jobType: { $regex: keyword, $options: "i" } },
             { location: { $regex: keyword, $options: "i" } },
-          ]);
+        ]);
 
-          const jobs = await Job.find({ $or: searchConditions }).populate('company').sort({ createdAt: -1 });
-          if(!jobs){
-             return res.status(404).json({jobs,message:"no job found",success:true});
-          }
+        const jobs = await Job.find({ $or: searchConditions }).populate('company').sort({ createdAt: -1 });
+        if (!jobs) {
+            return res.status(404).json({ jobs, message: "no job found", success: true });
+        }
 
-          return res.status(200).json({jobs,message:"job based on the search query.",success:true});
+        return res.status(200).json({ jobs, message: "job based on the search query.", success: true });
 
     } catch (error) {
-        console.log("error in the smart seach route:",error);
-        return res.status(400).json({message:"error searching the jobs",success:false})
+        console.log("error in the smart seach route:", error);
+        return res.status(400).json({ message: "error searching the jobs", success: false })
     }
 
 }
