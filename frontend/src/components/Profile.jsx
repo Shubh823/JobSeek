@@ -12,9 +12,9 @@ import useGetAppliedJobs from '@/hooks/useGetAppliedJobs'
 import useSavedJobs from '@/hooks/useSavedJobs'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { USER_API_END_POINT } from '@/utils/constant'
 
 // const skills = ["Html", "Css", "Javascript", "Reactjs"]
-const tips=["kjdnsihdsnfijfndsfkjnfkjdnfkjsd","jdfnufbnsduhbsdhbsdashbd","kjdnsihdsnfijfndsfkjnfkjdnfkjsd","jdfnufbnsduhbsdhbsdashbd","kjdnsihdsnfijfndsfkjnfkjdnfkjsd","jdfnufbnsduhbsdhbsdashbd"]
 const isResume = true;
 
 const Profile = () => {
@@ -32,7 +32,7 @@ const Profile = () => {
         
         try {
             setAiLoading(true);
-            const res = await axios.get("http://localhost:3000/api/v1/user/get-tips", {
+            const res = await axios.get(`${USER_API_END_POINT}/get-tips`, {
                 withCredentials: true,
             });
 
