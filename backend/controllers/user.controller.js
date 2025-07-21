@@ -328,6 +328,7 @@ export const getSavedJobs = async (req, res) => {
 
 export const getTips=async (req,res)=>{
     try {
+        
         const userId = req.id;
         const user = await User.findById(userId);
         if (!user) {

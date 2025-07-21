@@ -29,7 +29,7 @@ const Profile = () => {
     const [aiTips, setAiTips] = useState([]);
 
     const handleGetAiTips = async () => {
-        
+        console.log("clicked");
         try {
             setAiLoading(true);
             const res = await axios.get(`${USER_API_END_POINT}/get-tips`, {
