@@ -12,7 +12,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
-            <h2 className="text-xl font-bold text-[#6A38C2]">Job Hunt</h2>
+            <h2 className="text-xl font-bold text-[#6A38C2]">Job Seek</h2>
             <p className="text-sm text-gray-600">Empowering your career journey. Find your dream job, connect with top companies, and grow your future.</p>
             <p className="text-xs text-gray-400 mt-2">© {new Date().getFullYear()} Job Hunt. All rights reserved.</p>
           </div>

@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "create-sample-data": "node scripts/createSampleJobs.js"
   },
   "keywords": [],
@@ -13,6 +12,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@google/genai": "^1.10.0",
+    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.50.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
@@ -24,6 +25,8 @@
     "firebase": "^11.9.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
-    "multer": "^2.0.1"
+    "multer": "^2.0.1",
+    "node-fetch": "^3.3.2",
+    "pdf-parse": "^1.1.1"
   }
 }

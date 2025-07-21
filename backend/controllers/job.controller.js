@@ -1,5 +1,13 @@
 import { Job } from "../models/job.model.js";
 import { User } from "../models/user.model.js";
+import fetch from 'node-fetch';
+import { createClient } from '@supabase/supabase-js';
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import supabase from "../utils/supabaseClient.js";
+import { getSkillsFromResume } from "../utils/geminiHelper.js";
+import {smartSearch} from "../utils/geminiSmartSearch.js"
+
+import fs from 'fs';
 
 // admin post krega job
 export const postJob = async (req, res) => {
@@ -102,62 +110,79 @@ export const getAdminJobs = async (req, res) => {
     }
 }
 
-// Get recommended jobs based on user skills
+
+// Get recommended jobs based on resume using Gemini API
 export const getRecommendedJobs = async (req, res) => {
     try {
         const userId = req.id;
-        console.log("User ID:", userId);
-        // Get user profile with skills
         const user = await User.findById(userId);
-        
         if (!user) {
-            return res.status(404).json({
-                message: "User not found",
-                success: false
-            });
+            return res.status(404).json({ message: "User not found", success: false });
         }
-        
-        if (!user.profile || !user.profile.skills || user.profile.skills.length === 0) {
-            // If no skills, return recent jobs
-            const recentJobs = await Job.find().populate({
-                path: "company"
-            }).sort({ createdAt: -1 }).limit(10);
-            
+        // Check for resume URL
+        const resumeUrl = user.profile?.resume;
+        if (!resumeUrl) {
+            // Fallback: no resume, show recent jobs
+            const recentJobs = await Job.find().populate("company").sort({ createdAt: -1 }).limit(10);
             return res.status(200).json({
                 jobs: recentJobs,
                 success: true,
-                message: "Showing recent jobs (no skills found for recommendations)"
+                message: "No resume found. Showing recent jobs instead."
             });
         }
+        // Extract the path from the public URL (Supabase)
+        // Example: https://.../object/public/resumes/resume-123.pdf => resumes/resume-123.pdf
+        const match = resumeUrl.match(/object\/public\/(.*)/);
+        const resumePath = match ? match[1] : null;
+        if (!resumePath) {
+            return res.status(400).json({ message: "Invalid resume URL", success: false });
+        }
+        // Download resume from Supabase
+        const { data, error } = await supabase.storage.from('resumes').download(resumePath.replace('resumes/', ''));
+        if (error || !data) {
+            return res.status(400).json({ message: "Failed to download resume", success: false });
+        }
+        // Parse PDF text
+        const buffer = await data.arrayBuffer();
+        const pdfText = await pdfParse(Buffer.from(buffer));
+        // Get skills/roles from Gemini
+        const text = await getSkillsFromResume(pdfText.text);
+        const {skills,roles,technology} =text;
+       
 
-        const skills = user.profile.skills.map(skill => skill.toLowerCase());
-
+        const combinedKeywords = [...skills, ...technology, ...roles].map(term =>
+            term.toLowerCase()
+          );
+        // Find jobs matching skills or roles
         const recommendedJobs = await Job.find({
-            skills: { $in: skills }
-        }).populate('company').sort({ createdAt: -1 });
-
-        // If no direct matches, find jobs with similar requirements
-        if (recommendedJobs.length === 0) {
-            const fallbackJobs = await Job.find().populate({
-                path: "company"
-            }).sort({ createdAt: -1 }).limit(10);
-            
+            $and: [
+              {
+                $or: [
+                  { requirements: { $in: combinedKeywords } },
+                  { title: { $regex: combinedKeywords.join('|'), $options: 'i' } },
+                  { description: { $regex: combinedKeywords.join('|'), $options: 'i' } }
+                ]
+              },
+            ]
+          }).populate('company').sort({ createdAt: -1 });
+        // Fallback: recent jobs
+        if (!recommendedJobs.length) {
+            const recentJobs = await Job.find().populate('company').sort({ createdAt: -1 }).limit(10);
             return res.status(200).json({
-                jobs: fallbackJobs,
+                jobs: recentJobs,
                 success: true,
-                message: "Showing recent jobs (no direct skill matches found)"
+                message: "No direct matches. Showing recent jobs instead."
             });
         }
-
         return res.status(200).json({
             jobs: recommendedJobs,
             success: true,
-            message: `Found ${recommendedJobs.length} jobs matching your skills`
+            message: `Recommended jobs using your resume`
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
-            message: "Error fetching recommended jobs",
+            message: "Error processing resume recommendation",
             success: false
         });
     }
@@ -212,4 +237,32 @@ export const updateJob=async(req,res)=>{
     }
 }
 
+export const searchedJobs=async (req,res)=>{
+    const { query } = req.body;
+    console.log("Search query:", query);
+    
+    try {
+        let queryArray=await smartSearch(query);
+        
+        const searchConditions = queryArray.flatMap((keyword) => [
+            { title: { $regex: keyword, $options: "i" } },
+            { description: { $regex: keyword, $options: "i" } },
+            { requirements: { $regex: keyword, $options: "i" } },
+            { jobType: { $regex: keyword, $options: "i" } },
+            { location: { $regex: keyword, $options: "i" } },
+          ]);
+
+          const jobs = await Job.find({ $or: searchConditions }).populate('company').sort({ createdAt: -1 });
+          if(!jobs){
+             return res.status(404).json({jobs,message:"no job found",success:true});
+          }
+
+          return res.status(200).json({jobs,message:"job based on the search query.",success:true});
+
+    } catch (error) {
+        console.log("error in the smart seach route:",error);
+        return res.status(400).json({message:"error searching the jobs",success:false})
+    }
+
+}
 

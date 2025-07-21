@@ -4,6 +4,9 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import supabase from "../utils/supabaseClient.js";
+import {getTipsOnResume} from "../utils/geminiForSuggetions.js"
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+
 
 export const register = async (req, res) => {
     try {
@@ -290,9 +293,9 @@ export const unsaveJob = async (req, res) => {
 }
 
 export const getSavedJobs = async (req, res) => {
+    console.log("hit on the aitips route");
     try {
         const userId = req.id;
-        console.log('getSavedJobs called with userId:', userId);
 
         const user = await User.findById(userId).populate({
             path: 'savedJobs',
@@ -301,8 +304,7 @@ export const getSavedJobs = async (req, res) => {
             }
         });
 
-        console.log('User found:', user ? 'Yes' : 'No');
-        console.log('Saved jobs:', user?.savedJobs);
+       
 
         if (!user) {
             return res.status(404).json({
@@ -324,3 +326,51 @@ export const getSavedJobs = async (req, res) => {
     }
 }
 
+export const getTips=async (req,res)=>{
+    try {
+        const userId = req.id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found", success: false });
+        }
+        // Check for resume URL
+        const resumeUrl = user.profile?.resume;
+        if (!resumeUrl) {
+            // Fallback: no resume, show recent jobs
+            return res.status(200).json({
+                Tips:[],
+                success: false,
+                message: "No resume found. Please add the resume for the tips."
+            });
+        }
+            const match = resumeUrl.match(/object\/public\/(.*)/);
+            const resumePath = match ? match[1] : null;
+            if (!resumePath) {
+                return res.status(400).json({ message: "Invalid resume URL", success: false });
+            }
+            // Download resume from Supabase
+            const { data, error } = await supabase.storage.from('resumes').download(resumePath.replace('resumes/', ''));
+            if (error || !data) {
+                return res.status(400).json({ message: "Failed to download resume", success: false });
+            }
+            // Parse PDF text
+            const buffer = await data.arrayBuffer();
+            const pdfText = await pdfParse(Buffer.from(buffer));
+            const {Tips} = await getTipsOnResume(pdfText.text);
+            
+            if(Tips.length==0){
+                return res.status(404).json({Tips:[],message:"No tips found , problem in fetching resume!",success:false});
+            }
+    
+            return res.status(200).json({
+                Tips,
+                message:"Tips for resume updatation.",
+                success:true
+            });
+            
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({Tips:[],message:"error while generating tips.",success:false})
+    }
+}
