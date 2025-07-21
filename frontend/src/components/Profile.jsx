@@ -29,14 +29,15 @@ const Profile = () => {
     const [aiTips, setAiTips] = useState([]);
 
     const handleGetAiTips = async () => {
-        console.log("Clicked AI tips");
+        
         try {
             setAiLoading(true);
             const res = await axios.get("http://localhost:3000/api/v1/user/get-tips", {
                 withCredentials: true,
             });
 
-            const result = res.data.Tips; // Make sure `Tips` is an array in your backend response
+            const result = res.data.Tips;
+            console.log(result);
             setAiTips(result);
         } catch (error) {
             console.error("Failed to fetch AI tips:", error);

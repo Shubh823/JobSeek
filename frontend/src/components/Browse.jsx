@@ -30,15 +30,11 @@ const Browse = () => {
                     { query: searchQuery },
                     { withCredentials: true }
                 );
-
-                if (res.data.success) {
                     setFilterJobs(res.data.jobs);
-                } else {
-                    setFilterJobs([]);
-                }
+                    
             } catch (error) {
                 console.error('Error fetching search results:', error);
-                setFilterJobs([]);
+                setFilterJobs(allJobs);
             }finally{
                 setLoading(false);
             }
