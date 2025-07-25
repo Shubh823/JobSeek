@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button } from './ui/button'
 import { Search, Sparkles } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux';
-import {setSearchQuery } from '@/redux/jobSlice';
+import { setSearchQuery } from '@/redux/jobSlice';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -16,7 +16,7 @@ const HeroSection = () => {
         dispatch(setSearchQuery(query));
         navigate("/browse");
     }
-    
+
     const goToRecommendedJobs = () => {
         navigate("/recommended");
     }
@@ -31,7 +31,17 @@ const HeroSection = () => {
             >
                 <span className=' mx-auto px-4 py-2 rounded-full bg-gray-100 text-[#F83002] font-medium'>No. 1 Job Hunt Website</span>
                 <h1 className='text-5xl font-bold'>Search, Apply & <br /> Get Your <span className='text-[#6A38C2]'>Dream Jobs</span></h1>
-                <p>Find your next opportunity, connect with top companies, and take the next step in your career journey. Discover jobs that match your skills and ambitions!</p>
+                
+
+                <p style={{
+                    fontSize: '18px',
+                    color: '#374151',
+                    lineHeight: '1.6',
+                    fontFamily: 'Segoe UI, sans-serif',
+                }}>
+                    Find your next opportunity, connect with top companies, and take the next step in your career journey. Discover jobs that match your skills and ambitions!
+                </p>
+
                 <motion.div
                     className='flex w-[40%] shadow-lg border border-gray-200 pl-3 rounded-full items-center gap-4 mx-auto'
                     initial={{ opacity: 0, y: 20 }}
@@ -48,7 +58,7 @@ const HeroSection = () => {
                         <Search className='h-5 w-5' />
                     </Button>
                 </motion.div>
-                
+
                 {/* Recommended Jobs CTA for logged-in students */}
                 {user && user.role === 'student' && (
                     <motion.div
@@ -56,9 +66,9 @@ const HeroSection = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.7, ease: 'easeOut' }}
                     >
-                        <Button 
+                        <Button
                             onClick={goToRecommendedJobs}
-                            variant="outline" 
+                            variant="outline"
                             className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300"
                         >
                             <Sparkles className="h-4 w-4 mr-2" />
