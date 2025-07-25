@@ -1,6 +1,6 @@
-# JobSeek – AI-Powered Job Portal
+# HireBridge – AI-Powered Job Portal
 
-A modern, full-stack job portal application that leverages AI to connect students and recruiters. Built with React.js, Node.js, MongoDB, and Google Gemini API, JobSeek offers smart job search, personalized recommendations, resume analysis, and a seamless experience for both job seekers and recruiters.
+A modern, full-stack job portal application that leverages AI to connect students and recruiters. Built with React.js, Node.js, MongoDB, and Google Gemini API, HireBridge offers smart job search, personalized recommendations, resume analysis, and a seamless experience for both job seekers and recruiters.
 
 ---
 
@@ -100,7 +100,7 @@ npm run dev
 ## 🗂️ Project Structure
 
 ```
-JobSeek/
+HireBridge/
 ├── backend/
 │   ├── controllers/      # Business logic (users, jobs, companies, applications)
 │   ├── models/           # Mongoose schemas
