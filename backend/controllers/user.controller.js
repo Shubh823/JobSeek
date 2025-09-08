@@ -7,6 +7,31 @@ import supabase from "../utils/supabaseClient.js";
 import {getTipsOnResume} from "../utils/geminiForSuggetions.js"
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
+import axios from 'axios';
+
+const N8N_WEBHOOK = process.env.N8N_WEBHOOK;
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+
+async function callN8nWebhook(user) {
+  try {
+    await axios.post(N8N_WEBHOOK, {
+      name: user.name,
+      email: user.email,
+      skills: user.skills || 'React',
+      signupDate: new Date().toISOString().split("T")[0]
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': WEBHOOK_SECRET
+      },
+      timeout: 5000
+    });
+    console.log('n8n webhook called successfully');
+  } catch (err) {
+    console.error('n8n webhook call failed:', err.message);
+  }
+}
+
 
 export const register = async (req, res) => {
     try {
@@ -40,6 +65,8 @@ export const register = async (req, res) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        
+
         await User.create({
             fullname,
             email,
@@ -51,12 +78,24 @@ export const register = async (req, res) => {
             }
         });
 
+        callN8nWebhook({
+            name: fullname,
+            email: email,
+            skills: user?.profile?.skills?.join(",") || "",
+            signupDate: new Date()
+        });
+
         return res.status(201).json({
             message: "Account created successfully.",
             success: true
         });
+
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Account creation failed.",
+            success: false
+        });
     }
 }
 export const login = async (req, res) => {
